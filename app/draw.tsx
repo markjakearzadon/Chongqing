@@ -1,45 +1,38 @@
-import React, { useState } from "react";
-import { View, Button } from "react-native";
-import { Canvas, Path, Skia } from "@shopify/react-native-skia";
-import { GestureHandlerRootView, PanGestureHandler } from "react-native-gesture-handler";
+import { useEffect } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text } from "react-native";
+import { Canvas, Circle, useCanvasRef } from "@shopify/react-native-skia";
+
+const Demo = () => {
+  const ref = useCanvasRef();
+  useEffect(() => {
+    setTimeout(() => {
+      // you can pass an optional rectangle
+      // to only save part of the image
+      const image = ref.current?.makeImageSnapshot();
+      if (image) {
+        // you can use image in an <Image> component
+        // Or save to file using encodeToBytes -> Uint8Array
+        const bytes = image.encodeToBytes();
+        console.log({ bytes });
+      }
+    }, 1000);
+  });
+  return (
+    <Canvas style={{ flex: 1 }} ref={ref}>
+      <Circle r={128} cx={128} cy={128} color="red" />
+    </Canvas>
+  );
+};
 
 const draw = () => {
-  const [paths, setPaths] = useState([]);
-  const [currentPath, setCurrentPath] = useState("");
-
-  const handleTouchMove = (event) => {
-    const { x, y } = event.nativeEvent;
-    setCurrentPath((prevPath) => `${prevPath} ${x},${y}`);
-  };
-
-  const handleTouchEnd = () => {
-    if (currentPath) {
-      setPaths([...paths, currentPath]);
-      setCurrentPath("");
-    }
-  };
-
-  const clearCanvas = () => {
-    setPaths([]);
-    setCurrentPath("");
-  };
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: "white" }}>
-        <PanGestureHandler onGestureEvent={handleTouchMove} onEnded={handleTouchEnd}>
-          <Canvas style={{ flex: 1 }}>
-            {paths.map((d, index) => (
-              <Path key={index} path={Skia.Path.MakeFromSVGString(`M${d}`)} color="black" style="stroke" strokeWidth={2} />
-            ))}
-            {currentPath && (
-              <Path path={Skia.Path.MakeFromSVGString(`M${currentPath}`)} color="black" style="stroke" strokeWidth={2} />
-            )}
-          </Canvas>
-        </PanGestureHandler>
-        <Button title="Clear" onPress={clearCanvas} />
+    <SafeAreaView className="w-full h-full bg-backgroundColor">
+      <View className="h-full items-center mt-14">
+        <Text className="text-chiggaYellow text-2xl">Write & Draw Graphs</Text>
+        <Demo />
       </View>
-    </GestureHandlerRootView>
+    </SafeAreaView>
   );
 };
 
